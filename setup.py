@@ -8,25 +8,24 @@ with open(os.path.join(os.path.dirname(__file__), 'README.md')) as readme:
 os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 
 setup(
-    name='openimis-be-dhis2_etl',
-    version='0.0.1',
+    name='django-adx',
+    version='1.0.0',
     packages=find_packages(),
     include_package_data=True,
     license='GNU AGPL v3',
-    description='The openIMIS Backend to send data to DHIS2.',
+    description='Generate cube based on django ORM',
     # long_description=README,
-    url='https://openimis.org/',
+    url='https://github.com/delcroip/django-adx',
     author='Patrick Delcroix',
     author_email='patrick.delcroix@swisstph.ch',
     install_requires=[
         'django',
-        'django-db-signals',
         'dhis2.py',
-        'email-validator',
         'pydantic',
         'dict2obj',
-        'isodate==0.6.1',
-        'python-dateutil==2.8.2'
+        'isodate',
+        'python-dateutil',
+        'numpy'
     ],   
     classifiers=[
         'Environment :: Web Environment',
