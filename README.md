@@ -1,43 +1,74 @@
 # django_adx
- 
+
+
 This module enable creating aggregated data on multiple dimensions (CUBE)
 
-It was initially build as part of openimis-be-dhis2_etl_py made by Damian Borowiecki @dborowiecki (models) and Kamil Malinowski @Malinowskikam (dev) and
+It was initially build as part of openimis-be-dhis2_etl_py made by Damian Borowiecki @dborowiecki (models) and Kamil Malinowski @Malinowskikam (dev) and Patrick Delcroix (desing)
+
+it was design to send data to a DataSet of a DHIS2 server there for there is also some integration function with DHIS2 included but ADX cubes could be serialized to other format or converted to other object or database table rows
+
 
 ## concepts
 
-To create a cube that can later be serialized using the ADX format some steps are required
+
+To create cubes that can later be serialized using the ADX format some steps are required
 
 ADX cubes have 3 mandatory dimensions : WHAT (data_value), WHEN and WHERE (org_unit); but more dimension can be added to them, it requires the utilization of category (Very similar of how DHIS2 data element works); here are the step to create 
 
 - creating slices/options including a filter 
-- creating Category with their slices
+- creating Category with their slices defined before
 
 the ADX format use the CODE extensively therefore the WHEN, WHERE, WHAT, CATEGORY and CATEGORY OPTIONS need to have a code
-sometime the code need to be resolved that why there is a `to_org_unit_code_func` that can generate the code from the object acting as the org_unit  
+sometime the code need to be resolved that why there is a `to_org_unit_code_func` that can generate the code from the object acting as the org_unit. 
+
+the code can only be alpha numeric, all other char will be replaced by "_"
 
 ## how it works
 
-The adx definition (see example below) include a period type that should be used to create the time filter it also have
-a list of groups definition that define the function `period_filter_func`  that will generate the time filter that will be used for all the data_value in that group, this means that a group il likely to host the data_value associated to one django class
 
+the ADX structure (simplified) is :
 
- will be added to the "WHAT" django Query after the filter defined to the "WHEN" and "WHERE"
+adx:
+    period
+    list_adx_group:
+        list_data_values:
+            list_categories:
+                list_options:
+
+the data generation is done with a period and a list of org_unit.
+
+- on the adx level `to_org_unit_code_func` will generate the org_unit code
+- on the data_value level:
+    - `dataset_from_orgunit_func` will get the data_value object quesryset from the org_unit
+    - `period_filter_func` should return a Q object to filter the period on data_value object quesryset
+    - `aggregation_func` will be used in the annotate can be Sum, Count etc
+- on the category_option level:
+    - `filter` should return a Q object to filter the slice on data_value object queryset
+
+The groups don't have any other goal than grouping data_values
+
+Will be added to the "WHAT" django Query after the filter defined to the "WHEN" and "WHERE"
 
 
 ## **ADX Formatting** 
 
-in order to enable combination of the filter using he django ORM 2 concept are important:
+ADX Formatters allow transforming ADXMapping objects to diffrent formats. 
+At the moment only XML Format is implemented.
 
-- filter: a django Q object that will be applied the the "data element" Query
 
-- link between the "WHERE" and the "WHAT" expressed  `dataset_from_orgunit_func`
+## Examples
 
-## category
+### category
 
-example of a method that return a category definition including the slices, this method has a parameter `prefix` so it can be used on object where the gender found  in found through another object e.g `insuree__gender__code`,  then the prefi would be `insuree__`
+
+example of a method that return a category definition including the slices, this method has a parameter `prefix` so it can be used on object where the gender found  in found through another object e.g `insuree__gender__code`,  then the prefix would be `insuree__`
 
 ```python
+from django_adx.models.adx import (
+    ADXMappingCategoryDefinition,
+    ADXCategoryOptionDefinition
+)
+
 
 def get_sex_categories(prefix='') -> ADXMappingCategoryDefinition:
     return ADXMappingCategoryDefinition(
@@ -52,17 +83,26 @@ def get_sex_categories(prefix='') -> ADXMappingCategoryDefinition:
         ]
     )
 
-
 ```
 
-the `is_default` attribute prevent adding a filter but it also prevent having data that are not covers by any options
+The `is_default` attribute prevent adding a filter but it also prevent having data that are not covers by any options
 
 The category name is also used for the CODE
 
 
-### ADX Data definition 
-ADX Data definition can be defined using `django_adx.models.adx.ADXMappingDefinition`. 
-```python 
+### ADX Data definition
+
+
+```python
+from django_adx.models.adx import (
+    ADXMappingDefinition,
+    ADXMappingGroupDefinition,
+    ADXMappingDataValueDefinition,
+    ADXMappingCategoryDefinition,
+    ADXCategoryOptionDefinition
+)
+
+
 ADXMappingDefinition(
     period_type=ISOFormatPeriodType(), # Format of handled period type, at the moment only ISO Format is supported 
     to_org_unit_code_func= lambda l: build_dhis2_id(l.uuid),
@@ -89,14 +129,14 @@ ADXMappingDefinition(
 ```
 #### Example definition: [HF Number of insurees](django_adx/tests/adx_tests.py)
 
-### ADX Data Storage 
-`django_adx.converters.adx.ADXBuilder` is used for creating ADX Data collection
-based on data definition. 
-Example:
+
+### ADX Data generation
+
 
 ```python
-from django_adx.converters.adx.builders import ADXBuilder
+from django_adx.builders import ADXBuilder
 from django_adx.models.adx.definition import ADXMappingGroupDefinition
+
 
 definition = ADXMappingGroupDefinition(...)
 builder = ADXBuilder(definition)
@@ -106,18 +146,15 @@ builder.create_adx_cube(period_type, org_units)  # Returns ADXMapping object
 ```
 
 ### ADX Formatters
-ADX Formatters allow transforming ADXMapping objects to diffrent formats. 
-At the moment only XML Format is implemented.
+
 
 ```python
 from django_adx.converters.adx.formatters import XMLFormatter
 from django_adx.models.adx.data import ADXMapping
+
 
 adx_format = ADXMapping(...)
 xml_formatter = XMLFormatter()
 xml_format = xml_formatter.format_adx(adx_format)
 ```
 
-## CODE
-
-the code can only be alpha numeric, all other char will be replaced by "_"

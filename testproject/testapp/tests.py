@@ -161,7 +161,7 @@ class ADXTests(TestCase):
         adx_format = self._create_test_adx()
         xml_formatter = XMLFormatter()
         xml_format = xml_formatter.format_adx(adx_format)
-git remo        self._test_datavalue(asdict(adx_format), self.EXPECTED_ADX_DICT)
+        self._test_datavalue(asdict(adx_format), self.EXPECTED_ADX_DICT)
 
 
     def _create_test_adx(

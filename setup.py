@@ -13,8 +13,9 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     license='GNU AGPL v3',
-    description='Generate cube based on django ORM',
-    # long_description=README,
+    # other arguments omitted
+    long_description=README,
+    long_description_content_type='text/markdown',
     url='https://github.com/delcroip/django-adx',
     author='Patrick Delcroix',
     author_email='patrick.delcroix@swisstph.ch',
