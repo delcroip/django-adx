@@ -1,4 +1,4 @@
-# django_adx
+# django-adx
 
 
 This module enable creating aggregated data on multiple dimensions (CUBE)
@@ -6,6 +6,12 @@ This module enable creating aggregated data on multiple dimensions (CUBE)
 It was initially build as part of openimis-be-dhis2_etl_py made by Damian Borowiecki @dborowiecki (models) and Kamil Malinowski @Malinowskikam (dev) and Patrick Delcroix (desing)
 
 it was design to send data to a DataSet of a DHIS2 server there for there is also some integration function with DHIS2 included but ADX cubes could be serialized to other format or converted to other object or database table rows
+
+## links:
+
+PYPI: https://pypi.org/project/django-adx
+
+GITHUB: https://github.com/delcroip/django-adx
 
 
 ## concepts
