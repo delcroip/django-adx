@@ -15,13 +15,13 @@ class AbstractADXFormatter(ABC, Generic[_T]):
     def adx_from_format(self, adx: _T) -> ADXMapping:
         raise NotImplemented(F"Creating adx object from format `{_T}` not supported.")
 
-def remove_namespace(tree, namespace='ns0'):
+def remove_namespace(doc, namespace='ns0'):
     """Remove namespace in the passed document in place."""
-    for elem in tree.iter():
+    for elem in doc.iter():
         if elem.tag.startswith("{"):
             elem.tag = elem.tag.split("}", 1)[1]
         elem.attrib = {key.split("}", 1)[-1] if key.startswith("{") else key: value for key, value in elem.attrib.items()}
-    return tree
+    return doc
 
 class XMLFormatter(AbstractADXFormatter[ElementTree.Element]):
 
