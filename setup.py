@@ -26,7 +26,8 @@ setup(
         'dict2obj',
         'isodate',
         'python-dateutil',
-        'numpy'
+        'numpy',
+        'packaging'
     ],   
     classifiers=[
         'Environment :: Web Environment',
